@@ -58,16 +58,21 @@ add_widget() {
   # The search result is the app's widget list; tap it to open the preview.
   tap "Minuteurs" --text || return 1
   sleep 2
+  # Tap the widget preview (its cell holds the description): the launcher shows "Add".
+  tap "Running timers" --prefix --text || true
+  sleep 2
   adb exec-out screencap -p > "$OUT/widget-picker.png"
   if dump && xy=$(find_xy "Add" --text || find_xy "Ajouter" --text); then
+    echo "tap Add at $xy"
     # shellcheck disable=SC2086
     adb shell input tap $xy
   else
-    # Older picker: drag the preview to the home screen.
-    dump && xy=$(python3 "$HERE/ui_find.py" "$OUT/ui.xml" "Minuteurs" --desc --prefix --clickable) || return 1
+    # Older picker: long press the preview and drag it to the home screen.
+    dump && xy=$(python3 "$HERE/ui_find.py" "$OUT/ui.xml" "Running timers" --prefix --text --clickable) || return 1
+    echo "drag the widget preview from $xy"
     # shellcheck disable=SC2086
     set -- $xy
-    adb shell input draganddrop "$1" "$2" 540 900 1500
+    adb shell input draganddrop "$1" "$2" 540 900 2000
   fi
   sleep 3
 }
@@ -80,6 +85,7 @@ fi
 adb shell input keyevent KEYCODE_HOME
 sleep 4
 adb exec-out screencap -p > "$OUT/06-widget.png"
+adb shell dumpsys appwidget | sed -n '/^Widgets:/,/^Hosts:/p' | head -20 || true
 if bound; then
   echo "Widget is on the home screen"
   adb shell cmd uimode night yes >/dev/null || true
