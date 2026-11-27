@@ -78,10 +78,23 @@ sleep 12
 
 # uiautomator cannot dump while a countdown ticks (the UI is never idle), so every
 # tap target is read while no timer runs. The preset chips do not move afterwards.
-if ! has "$TITLE"; then
-  echo "The app does not show '$TITLE': language $LANG_CODE not applied"
-  cp "$OUT/ui.xml" "$OUT/home.xml"; exit 1
-fi
+# A slow emulator can show an "isn't responding" dialog (often the launcher's):
+# dismiss it with "Wait" and bring the app back to the front.
+for attempt in 1 2 3 4; do
+  if has "$TITLE"; then break; fi
+  if python3 "$HERE/ui_find.py" "$OUT/ui.xml" "responding" --text --prefix >/dev/null \
+    || grep -q "responding" "$OUT/ui.xml"; then
+    echo "Dismissing a system 'not responding' dialog"
+    tap "Wait" --text || adb shell input keyevent KEYCODE_BACK
+  fi
+  if [ "$attempt" = 4 ]; then
+    echo "The app does not show '$TITLE': language $LANG_CODE not applied or app not in front"
+    cp "$OUT/ui.xml" "$OUT/home.xml"; exit 1
+  fi
+  sleep 3
+  adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null
+  sleep 8
+done
 PRESET_XY=$(python3 "$HERE/ui_find.py" "$OUT/ui.xml" "$PASTA" --text --clickable)
 echo "preset '$PASTA' chip at $PRESET_XY"
 shot 01-home 1
