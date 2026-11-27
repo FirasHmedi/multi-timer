@@ -13,13 +13,13 @@ mkdir -p "$OUT"
 
 if [ "$LANG_CODE" = fr ]; then
   LOCALE=fr-FR; TITLE="Minuteurs"; PASTA="Pâtes"; CUSTOM="Lessive"
-  START="Démarrer"; ENDS="Fin à"; NEW="Nouveau minuteur"
+  START="Démarrer"; NEW="Nouveau minuteur"
 else
   LOCALE=en-US; TITLE="Multi Timer"; PASTA="Pasta"; CUSTOM="Laundry"
-  START="Start"; ENDS="Ends at"; NEW="New timer"
+  START="Start"; NEW="New timer"
 fi
 
-# uiautomator waits for an idle UI; a running countdown can delay that, so retry.
+# uiautomator waits for an idle UI; retry a few times.
 dump() {
   local i
   for i in 1 2 3 4 5; do
@@ -60,6 +60,9 @@ hide_keyboard() {
   fi
 }
 
+# Pending end-of-timer alarms of the app (expo-notifications uses AlarmManager.setAlarmClock).
+alarms() { adb shell dumpsys alarm | grep -c "$PKG" || true; }
+
 # System language. `cmd locale` exists on recent images; fall back to the setting.
 adb shell cmd locale set-system-locales "$LOCALE" 2>/dev/null \
   || adb shell settings put system system_locales "$LOCALE"
@@ -73,20 +76,17 @@ adb logcat -c
 adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null
 sleep 12
 
+# uiautomator cannot dump while a countdown ticks (the UI is never idle), so every
+# tap target is read while no timer runs. The preset chips do not move afterwards.
 if ! has "$TITLE"; then
   echo "The app does not show '$TITLE': language $LANG_CODE not applied"
   cp "$OUT/ui.xml" "$OUT/home.xml"; exit 1
 fi
+PRESET_XY=$(python3 "$HERE/ui_find.py" "$OUT/ui.xml" "$PASTA" --text --clickable)
+echo "preset '$PASTA' chip at $PRESET_XY"
 shot 01-home 1
 
-# Tap the first preset chip (found by its text), then check a timer runs.
-tap "$PASTA" --text
-shot 02-preset-started
-if ! has "$ENDS" --prefix --text; then
-  echo "Tapping the preset did not start a timer"; cp "$OUT/ui.xml" "$OUT/preset.xml"; exit 1
-fi
-
-# New timer: typed name, quick duration.
+# New timer: typed name, quick duration, start.
 tap "$NEW" --desc
 sleep 3
 tap "android.widget.EditText" --class
@@ -94,17 +94,32 @@ sleep 1
 adb shell input text "$CUSTOM"
 hide_keyboard
 tap "45 min" --text
-shot 03-new-timer 2
-tap "$START" --prefix --text
+shot 02-new-timer 2
+dump
+START_XY=$(python3 "$HERE/ui_find.py" "$OUT/ui.xml" "$START" --prefix --text --clickable)
+before=$(alarms)
+echo "tap '$START' at $START_XY"
+# shellcheck disable=SC2086
+adb shell input tap $START_XY
 sleep 3
 
-# Pause the first timer so the list shows two states.
-tap "Pause" --desc
-shot 04-timers 2
+# Tap the first preset chip: a second timer must start.
+after_new=$(alarms)
+echo "tap '$PASTA' at $PRESET_XY"
+# shellcheck disable=SC2086
+adb shell input tap $PRESET_XY
+shot 03-timers 3
+after_preset=$(alarms)
+echo "alarms: before=$before after-new=$after_new after-preset=$after_preset"
+if [ "$after_new" -le "$before" ] || [ "$after_preset" -le "$after_new" ]; then
+  echo "A timer did not start (no new end alarm)"
+  adb shell dumpsys alarm | grep -B2 -A6 "$PKG" | head -60
+  exit 1
+fi
 
 # Same list in the dark theme.
 adb shell cmd uimode night yes >/dev/null || true
-shot 05-timers-dark 5
+shot 04-timers-dark 5
 adb shell cmd uimode night no >/dev/null || true
 
 if adb logcat -d | grep -q "FATAL EXCEPTION"; then
