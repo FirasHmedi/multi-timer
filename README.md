@@ -8,11 +8,13 @@ Open source (MIT), offline, no account, no ads, no tracking.
 
 ## Screenshots
 
-Web preview (rendered in a browser at 360 px wide with example data; Android screenshots are produced by CI on an emulator):
+Real screenshots from an Android 14 emulator (1080 x 2400), taken by CI with `scripts/android-screenshots.sh`. The timers were created through the app's interface.
 
-| Timers | Timers (French, dark theme) | New timer |
-| --- | --- | --- |
-| ![Timers list](docs/screenshots/home-en.png) | ![Timers list in French, dark theme](docs/screenshots/home-fr-dark.png) | ![New timer screen](docs/screenshots/new-timer-fr.png) |
+| Timers | Dark theme | New timer | French |
+| --- | --- | --- | --- |
+| ![Two running timers](docs/screenshots/android/en/03-timers.png) | ![Two running timers, dark theme](docs/screenshots/android/en/04-timers-dark.png) | ![New timer screen](docs/screenshots/android/en/02-new-timer.png) | ![Timers in French](docs/screenshots/android/fr/03-timers.png) |
+
+More in [docs/screenshots/android](docs/screenshots/android) (English and French).
 
 ## Features
 
@@ -44,7 +46,7 @@ cd android && ./gradlew assembleRelease
 
 The APK is in `android/app/build/outputs/apk/release/`. It is signed with the debug key of the template: fine for testing, not for the Play Store.
 
-CI (`.github/workflows/android.yml`) runs the checks, builds the APK, takes screenshots on an Android 14 emulator, and attaches the APK to a GitHub release for `v*` tags.
+CI (`.github/workflows/android.yml`) runs the checks, builds the APK, takes screenshots on an Android 14 emulator in English and French (failing if the app crashes or a preset does not start a timer), and attaches the APK to a GitHub release for `v*` tags.
 
 Stack: Expo SDK 58, React Native, TypeScript, Expo Router, expo-sqlite, expo-notifications. The timer logic is in `src/lib/` with Jest tests.
 
