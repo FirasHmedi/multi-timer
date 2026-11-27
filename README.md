@@ -24,6 +24,7 @@ More in [docs/screenshots/android](docs/screenshots/android) (English and French
 - Timers are stored as absolute end times, not as a ticking counter, so they stay correct after the app was in the background, killed or the phone restarted.
 - When a timer ends: a local notification at the exact end time (high-priority channel with sound and vibration), plus an in-app alert and vibration if the app is open.
 - Saved presets (for example "Pasta 9 min") to start a timer in one tap. Long press a preset to delete it.
+- Home-screen widget (Android): the running timers with the clock time each one ends at (for example "Pasta — ends 18:42"), and a button to open the app. Light and dark.
 - Optional "Keep screen on" while a timer is running.
 - French and English, following the phone language. Light and dark theme.
 
