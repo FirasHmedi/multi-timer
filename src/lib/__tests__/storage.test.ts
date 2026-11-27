@@ -1,4 +1,4 @@
-import { parseAppData, type Preset } from '../storage';
+import { localizeDefaultPresets, parseAppData, type Preset } from '../storage';
 
 const fallback: Preset[] = [{ id: 'p', label: 'Example', durationMs: 60_000 }];
 
@@ -22,5 +22,33 @@ describe('parseAppData', () => {
     expect(data.timers.map((t) => t.id)).toEqual(['a']);
     expect(data.presets).toEqual([]);
     expect(data.settings.keepAwake).toBe(true);
+  });
+});
+
+describe('localizeDefaultPresets', () => {
+  const defaults: Preset[] = [
+    { id: 'default-1', label: 'Pâtes', durationMs: 540_000 },
+    { id: 'default-2', label: 'Thé', durationMs: 240_000 },
+  ];
+  const translations = { 'default-1': ['Pâtes', 'Pasta'], 'default-2': ['Thé', 'Tea'] };
+
+  it('translates built-in presets saved in another language', () => {
+    const saved: Preset[] = [
+      { id: 'default-1', label: 'Pasta', durationMs: 540_000 },
+      { id: 'default-2', label: 'Tea', durationMs: 300_000 },
+    ];
+    expect(localizeDefaultPresets(saved, defaults, translations)).toEqual([
+      { id: 'default-1', label: 'Pâtes', durationMs: 540_000 },
+      // The duration the user saved is kept.
+      { id: 'default-2', label: 'Thé', durationMs: 300_000 },
+    ]);
+  });
+
+  it('keeps renamed built-in presets and user presets as they are', () => {
+    const saved: Preset[] = [
+      { id: 'default-1', label: 'Spaghetti', durationMs: 540_000 },
+      { id: 'abc', label: 'Pasta', durationMs: 60_000 },
+    ];
+    expect(localizeDefaultPresets(saved, defaults, translations)).toEqual(saved);
   });
 });

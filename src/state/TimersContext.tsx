@@ -13,7 +13,9 @@ import {
 import { Alert, AppState, Platform, Vibration } from 'react-native';
 
 import { t } from '../i18n';
-import { newId, parseAppData, type AppData, type Preset, type Settings } from '../lib/storage';
+import { en } from '../i18n/en';
+import { fr } from '../i18n/fr';
+import { localizeDefaultPresets, newId, parseAppData, type AppData, type Preset, type Settings } from '../lib/storage';
 import * as T from '../lib/timer';
 import { loadRaw, saveRaw } from '../platform/persist';
 import { cancelEnd, ensurePermission, scheduleEnd, setupNotifications } from '../platform/notify';
@@ -21,6 +23,13 @@ import { cancelEnd, ensurePermission, scheduleEnd, setupNotifications } from '..
 /** A timer that ended more than this long ago is shown as done without a new alert. */
 const ALERT_WINDOW_MS = 5_000;
 const KEEP_AWAKE_TAG = 'multi-timer';
+
+const DEFAULT_PRESET_KEYS = ['presetPasta', 'presetEggs', 'presetTea', 'presetBreak'] as const;
+
+/** Every translation of each built-in preset label, by preset id. */
+const DEFAULT_PRESET_LABELS: Record<string, string[]> = Object.fromEntries(
+  DEFAULT_PRESET_KEYS.map((k, i) => [`default-${i + 1}`, [fr[k], en[k]]]),
+);
 
 function defaultPresets(): Preset[] {
   const m = (n: number) => n * 60_000;
@@ -33,7 +42,9 @@ function defaultPresets(): Preset[] {
 }
 
 function loadInitial(): AppData {
-  const data = parseAppData(loadRaw(), defaultPresets());
+  const defaults = defaultPresets();
+  const data = parseAppData(loadRaw(), defaults);
+  data.presets = localizeDefaultPresets(data.presets, defaults, DEFAULT_PRESET_LABELS);
   // Timers that ended while the app was closed: their notification already fired.
   return { ...data, timers: T.settle(data.timers, Date.now()).timers };
 }

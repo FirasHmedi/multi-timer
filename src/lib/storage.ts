@@ -71,3 +71,21 @@ export function parseAppData(json: string | null, fallbackPresets: Preset[]): Ap
 export function newId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
+
+/**
+ * Built-in presets are saved with their label in the language of the first
+ * launch. Show them in the current language, unless the user renamed them:
+ * a built-in preset (same id) whose label is still one of its known
+ * translations takes the current label.
+ */
+export function localizeDefaultPresets(
+  presets: Preset[],
+  defaults: Preset[],
+  translations: Record<string, string[]>,
+): Preset[] {
+  return presets.map((p) => {
+    const current = defaults.find((d) => d.id === p.id);
+    if (!current || p.label === current.label) return p;
+    return translations[p.id]?.includes(p.label) ? { ...p, label: current.label } : p;
+  });
+}
