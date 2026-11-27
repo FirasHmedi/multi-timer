@@ -58,8 +58,16 @@ add_widget() {
   # The search result is the app's widget list; tap it to open the preview.
   tap "Minuteurs" --text || return 1
   sleep 2
-  # Tap the widget preview (its cell holds the description): the launcher shows "Add".
-  tap "Running timers" --prefix --text || true
+  # The preview image sits above the widget name, size and description; the texts
+  # themselves are not tap targets. Aim ~440 px (1080x2400 screen) above the description.
+  dump || return 1
+  cp "$OUT/ui.xml" "$OUT/widget-picker.xml"
+  xy=$(python3 "$HERE/ui_find.py" "$OUT/ui.xml" "Running timers" --prefix --text) || return 1
+  # shellcheck disable=SC2086
+  set -- $xy
+  local px=$1 py=$(( $2 - 440 ))
+  echo "tap the widget preview at $px $py"
+  adb shell input tap "$px" "$py"
   sleep 2
   adb exec-out screencap -p > "$OUT/widget-picker.png"
   if dump && xy=$(find_xy "Add" --text || find_xy "Ajouter" --text); then
@@ -67,12 +75,8 @@ add_widget() {
     # shellcheck disable=SC2086
     adb shell input tap $xy
   else
-    # Older picker: long press the preview and drag it to the home screen.
-    dump && xy=$(python3 "$HERE/ui_find.py" "$OUT/ui.xml" "Running timers" --prefix --text --clickable) || return 1
-    echo "drag the widget preview from $xy"
-    # shellcheck disable=SC2086
-    set -- $xy
-    adb shell input draganddrop "$1" "$2" 540 900 2000
+    echo "no Add button: long press the preview and drag it to the home screen"
+    adb shell input draganddrop "$px" "$py" 540 700 2500
   fi
   sleep 3
 }
