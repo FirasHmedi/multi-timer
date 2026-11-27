@@ -8,11 +8,13 @@ Open source (MIT), hors ligne, sans compte, sans publicité, sans traceur.
 
 ## Captures
 
-Aperçu web (rendu dans un navigateur à 360 px de large avec des données d’exemple ; les captures Android sont faites par la CI sur un émulateur) :
+Vraies captures d’un émulateur Android 14 (1080 x 2400), prises par la CI avec `scripts/android-screenshots.sh`. Les minuteurs ont été créés depuis l’interface de l’app.
 
-| Minuteurs | Minuteurs (thème sombre) | Nouveau minuteur |
-| --- | --- | --- |
-| ![Liste des minuteurs](docs/screenshots/home-en.png) | ![Liste des minuteurs, thème sombre](docs/screenshots/home-fr-dark.png) | ![Écran nouveau minuteur](docs/screenshots/new-timer-fr.png) |
+| Minuteurs | Thème sombre | Nouveau minuteur | Anglais |
+| --- | --- | --- | --- |
+| ![Deux minuteurs en cours](docs/screenshots/android/fr/03-timers.png) | ![Deux minuteurs en cours, thème sombre](docs/screenshots/android/fr/04-timers-dark.png) | ![Écran nouveau minuteur](docs/screenshots/android/fr/02-new-timer.png) | ![Minuteurs en anglais](docs/screenshots/android/en/03-timers.png) |
+
+Toutes les captures dans [docs/screenshots/android](docs/screenshots/android) (français et anglais).
 
 ## Fonctionnalités
 
@@ -44,7 +46,7 @@ cd android && ./gradlew assembleRelease
 
 L’APK est dans `android/app/build/outputs/apk/release/`. Il est signé avec la clé de débogage du modèle : suffisant pour tester, pas pour le Play Store.
 
-La CI (`.github/workflows/android.yml`) lance les vérifications, compile l’APK, fait des captures sur un émulateur Android 14 et joint l’APK à une release GitHub pour les tags `v*`.
+La CI (`.github/workflows/android.yml`) lance les vérifications, compile l’APK, fait des captures sur un émulateur Android 14 en anglais et en français (échec si l’app plante ou si un préréglage ne lance pas de minuteur), et joint l’APK à une release GitHub pour les tags `v*`.
 
 Pile : Expo SDK 58, React Native, TypeScript, Expo Router, expo-sqlite, expo-notifications. La logique des minuteurs est dans `src/lib/`, avec des tests Jest.
 

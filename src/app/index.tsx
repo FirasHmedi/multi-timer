@@ -30,7 +30,12 @@ export default function Home() {
       {api.presets.length > 0 ? (
         <>
           <Text style={[styles.section, { color: c.muted }]}>{t('presets')}</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.chipsScroll}
+            contentContainerStyle={styles.chips}
+          >
             {api.presets.map((p) => (
               <Pressable
                 key={p.id}
@@ -108,7 +113,9 @@ const styles = StyleSheet.create({
   list: { padding: 16 },
   header: { gap: 8, marginBottom: 8 },
   section: { fontSize: 13, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 4 },
-  chips: { gap: 8, paddingRight: 16 },
+  // Scroll edge to edge: the chips are not cut 16 dp before the screen edge.
+  chipsScroll: { marginHorizontal: -16 },
+  chips: { gap: 8, paddingHorizontal: 16 },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
