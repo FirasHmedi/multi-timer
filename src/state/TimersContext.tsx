@@ -19,6 +19,7 @@ import { localizeDefaultPresets, newId, parseAppData, type AppData, type Preset,
 import * as T from '../lib/timer';
 import { loadRaw, saveRaw } from '../platform/persist';
 import { cancelEnd, ensurePermission, scheduleEnd, setupNotifications } from '../platform/notify';
+import { updateWidget } from '../platform/widget';
 
 /** A timer that ended more than this long ago is shown as done without a new alert. */
 const ALERT_WINDOW_MS = 5_000;
@@ -104,6 +105,11 @@ export function TimersProvider({ children }: { children: ReactNode }) {
     }
     saveRaw(JSON.stringify(data));
   }, [data]);
+
+  // Home-screen widget: redraw when the timers change (and once at launch).
+  useEffect(() => {
+    updateWidget(data.timers);
+  }, [data.timers]);
 
   // Notification channel, then make sure every running timer has its notification
   // (cheap, and repairs anything lost, e.g. after an app update).

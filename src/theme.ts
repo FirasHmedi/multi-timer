@@ -16,6 +16,8 @@ const light = {
 
 export type Palette = typeof light;
 
+export const lightPalette = light;
+
 const dark: Palette = {
   bg: '#121211',
   card: '#1E1E1C',
@@ -29,6 +31,8 @@ const dark: Palette = {
   doneBg: '#3A1D1A',
   chip: '#2A2926',
 };
+
+export const darkPalette = dark;
 
 export function usePalette(): Palette {
   return useColorScheme() === 'dark' ? dark : light;

@@ -48,4 +48,9 @@ export const en: Strings = {
   presetLaundry: 'Laundry',
   decrease: 'Less',
   increase: 'More',
+  widgetTitle: 'Running timers',
+  widgetEmpty: 'No timer running',
+  widgetEndsAt: 'ends {time}',
+  widgetMore: '+ {n} more',
+  widgetOpen: 'Open',
 };
