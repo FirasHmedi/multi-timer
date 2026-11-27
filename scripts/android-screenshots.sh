@@ -63,10 +63,29 @@ hide_keyboard() {
 # Pending end-of-timer alarms of the app (expo-notifications uses AlarmManager.setAlarmClock).
 alarms() { adb shell dumpsys alarm | grep -c "$PKG" || true; }
 
-# System language. `cmd locale` exists on recent images; fall back to the setting.
-adb shell cmd locale set-system-locales "$LOCALE" 2>/dev/null \
-  || adb shell settings put system system_locales "$LOCALE"
-echo "system_locales: $(adb shell settings get system system_locales || true)"
+# System language: persist.sys.locale, then restart the Android framework so that
+# apps get the new configuration (`settings put system system_locales` alone is not
+# applied until a reboot). The google_apis image allows `adb root`.
+current_locale() {
+  local l
+  l=$(adb shell getprop persist.sys.locale | tr -d '\r')
+  [ -n "$l" ] || l=$(adb shell getprop ro.product.locale | tr -d '\r')
+  echo "$l"
+}
+if [ "$(current_locale)" != "$LOCALE" ]; then
+  echo "Switching the emulator from $(current_locale) to $LOCALE"
+  adb root >/dev/null; sleep 3; adb wait-for-device
+  adb shell setprop persist.sys.locale "$LOCALE"
+  adb shell settings put system system_locales "$LOCALE" || true
+  adb shell setprop ctl.restart zygote
+  sleep 15; adb wait-for-device
+  for _ in $(seq 1 60); do
+    if adb shell dumpsys activity activities 2>/dev/null | grep -q "ResumedActivity"; then break; fi
+    sleep 3
+  done
+  sleep 10
+fi
+echo "locale: $(current_locale)"
 
 adb install -r "$APK" >/dev/null
 adb shell pm clear "$PKG" >/dev/null
@@ -85,7 +104,7 @@ for attempt in 1 2 3 4; do
   if python3 "$HERE/ui_find.py" "$OUT/ui.xml" "responding" --text --prefix >/dev/null \
     || grep -q "responding" "$OUT/ui.xml"; then
     echo "Dismissing a system 'not responding' dialog"
-    tap "Wait" --text || adb shell input keyevent KEYCODE_BACK
+    tap "Wait" --text || tap "Attendre" --text || adb shell input keyevent KEYCODE_BACK
   fi
   if [ "$attempt" = 4 ]; then
     echo "The app does not show '$TITLE': language $LANG_CODE not applied or app not in front"
