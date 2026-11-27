@@ -24,6 +24,7 @@ Toutes les captures dans [docs/screenshots/android](docs/screenshots/android) (f
 - Chaque minuteur garde son heure de fin exacte, pas un compteur : il reste juste après un passage en arrière-plan, une fermeture de l’app ou un redémarrage du téléphone.
 - À la fin d’un minuteur : notification locale à l’heure exacte (canal prioritaire avec son et vibration), plus une alerte et une vibration dans l’app si elle est ouverte.
 - Préréglages enregistrés (par exemple « Pâtes 9 min ») pour relancer en un geste. Appui long pour supprimer un préréglage.
+- Widget d’écran d’accueil (Android) : les minuteurs en cours avec leur heure de fin (par exemple « Pâtes — fin à 18:42 ») et un bouton pour ouvrir l’app. Clair et sombre.
 - Option « Garder l’écran allumé » tant qu’un minuteur tourne.
 - Français et anglais, selon la langue du téléphone. Thème clair et sombre.
 

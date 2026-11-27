@@ -46,6 +46,11 @@ export const fr = {
   presetLaundry: 'Lessive',
   decrease: 'Moins',
   increase: 'Plus',
+  widgetTitle: 'Minuteurs en cours',
+  widgetEmpty: 'Aucun minuteur en cours',
+  widgetEndsAt: 'fin à {time}',
+  widgetMore: '+ {n} autres',
+  widgetOpen: 'Ouvrir',
 };
 
 export type Strings = typeof fr;
