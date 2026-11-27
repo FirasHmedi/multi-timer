@@ -63,6 +63,12 @@ hide_keyboard() {
 # Pending end-of-timer alarms of the app (expo-notifications uses AlarmManager.setAlarmClock).
 alarms() { adb shell dumpsys alarm | grep -c "$PKG" || true; }
 
+# No "isn't responding" / crash dialogs from other apps over the screenshots (our own
+# crashes are still caught from logcat below). Let a freshly booted emulator settle.
+adb shell settings put global hide_error_dialogs 1 || true
+until [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; do sleep 2; done
+sleep 20
+
 # System language: persist.sys.locale, then restart the Android framework so that
 # apps get the new configuration (`settings put system system_locales` alone is not
 # applied until a reboot). The google_apis image allows `adb root`.
@@ -104,7 +110,8 @@ for attempt in 1 2 3 4; do
   if python3 "$HERE/ui_find.py" "$OUT/ui.xml" "responding" --text --prefix >/dev/null \
     || grep -q "responding" "$OUT/ui.xml"; then
     echo "Dismissing a system 'not responding' dialog"
-    tap "Wait" --text || tap "Attendre" --text || adb shell input keyevent KEYCODE_BACK
+    # "Close app": the launcher (usually the one hanging) restarts by itself.
+    tap "Close app" --text || tap "Fermer l’application" --text || adb shell input keyevent KEYCODE_BACK
   fi
   if [ "$attempt" = 4 ]; then
     echo "The app does not show '$TITLE': language $LANG_CODE not applied or app not in front"
